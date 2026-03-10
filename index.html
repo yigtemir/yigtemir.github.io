@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yiğit Emir</title>
+    <link rel="icon" type="image/x-icon" href="YE.ico">
+    <meta name="description" content="An monochromatic website by Yemsr. Built with Three.js and WebGL.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000000;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Custom cursor */
+        #cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+            mix-blend-mode: difference;
+        }
+
+        #cursor-dot {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+        }
+
+        /* Overlay UI */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 8vh;
+        }
+
+        /* Main title */
+        .hero-text {
+            text-align: center;
+            color: #ffffff;
+            mix-blend-mode: exclusion;
+            user-select: none;
+        }
+
+        .hero-text .label {
+            font-size: clamp(10px, 1.2vw, 14px);
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            opacity: 0.4;
+            margin-bottom: 12px;
+            animation: fadeSlideUp 2s ease 1.5s both;
+        }
+
+        .hero-text .title {
+            font-size: clamp(28px, 5vw, 72px);
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.85;
+            animation: fadeSlideUp 2s ease 1.8s both;
+            background: linear-gradient(180deg, #ffffff 0%, #666666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-text .sub {
+            font-size: clamp(9px, 1vw, 12px);
+            font-weight: 300;
+            letter-spacing: 0.8em;
+            text-transform: uppercase;
+            opacity: 0.25;
+            margin-top: 16px;
+            animation: fadeSlideUp 2s ease 2.1s both;
+        }
+
+        /* Corner decorations */
+        .corner-info {
+            position: fixed;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            z-index: 100;
+            user-select: none;
+        }
+
+        .corner-info.top-left {
+            top: 30px;
+            left: 30px;
+            animation: fadeIn 2s ease 2.5s both;
+        }
+
+        .corner-info.top-right {
+            top: 30px;
+            right: 30px;
+            text-align: right;
+            animation: fadeIn 2s ease 2.7s both;
+        }
+
+        .corner-info.bottom-left {
+            bottom: 30px;
+            left: 30px;
+            animation: fadeIn 2s ease 2.9s both;
+        }
+
+        .corner-info.bottom-right {
+            bottom: 30px;
+            right: 30px;
+            text-align: right;
+            animation: fadeIn 2s ease 3.1s both;
+        }
+
+        /* Scan lines */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.03) 2px,
+                    rgba(0, 0, 0, 0.03) 4px);
+            opacity: 0.5;
+        }
+
+        /* Vignette */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 98;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+        }
+
+        /* Loading screen */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 1.5s ease, visibility 1.5s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #loading .loader-ring {
+            width: 60px;
+            height: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+        }
+
+        #loading .loader-text {
+            margin-top: 24px;
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 0.6em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Horizontal lines */
+        .h-line {
+            position: fixed;
+            left: 30px;
+            right: 30px;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.04);
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .h-line.top {
+            top: 60px;
+            animation: fadeIn 3s ease 3s both;
+        }
+
+        .h-line.bottom {
+            bottom: 60px;
+            animation: fadeIn 3s ease 3s both;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ─── SOCIAL ICONS SIDEBAR ─────────────────────────── */
+        .social-sidebar {
+            position: fixed;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+            z-index: 200;
+            animation: fadeIn 2s ease 3.5s both;
+        }
+
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            opacity: 0.2;
+            cursor: grab;
+            transition: opacity 0.3s ease;
+            user-select: none;
+            touch-action: none;
+            will-change: transform, opacity, filter;
+            transform-origin: center center;
+        }
+
+        .social-icon:hover {
+            opacity: 0.5;
+        }
+
+        .social-icon.dragging {
+            cursor: grabbing;
+            z-index: 9998;
+            transition: none;
+        }
+
+        .social-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #ffffff;
+            pointer-events: none;
+        }
+
+        .social-icon .icon-label {
+            position: absolute;
+            left: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 9px;
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.0);
+            white-space: nowrap;
+            pointer-events: none;
+            transition: color 0.3s ease;
+        }
+
+        .social-icon:hover .icon-label {
+            color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Absorption burst particles */
+        .absorption-particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+        }
+
+        /* Reset button */
+        .reset-btn {
+            position: fixed;
+            left: 33px;
+            bottom: 80px;
+            width: 24px;
+            height: 24px;
+            z-index: 200;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            animation: fadeIn 2s ease 4s both;
+        }
+
+        .reset-btn.visible {
+            opacity: 0.2;
+            pointer-events: auto;
+        }
+
+        .reset-btn:hover {
+            opacity: 0.5;
+        }
+
+        .reset-btn svg {
+            width: 100%;
+            height: 100%;
+            fill: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="loader-ring"></div>
+        <div class="loader-text">Initializing Singularity</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="cursor"></div>
+    <div id="cursor-dot"></div>
+
+    <!-- Post-processing overlays -->
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div class="h-line top"></div>
+    <div class="h-line bottom"></div>
+
+    <!-- Corner UI -->
+    <div class="corner-info top-left">
+        <span id="coordinates">00.0000°N 00.0000°E</span>
+    </div>
+    <div class="corner-info top-right">
+        <span id="fps-counter">60 FPS</span><br>
+        <span style="opacity:0.5">WEBGL 2.0</span>
+    </div>
+    <div class="corner-info bottom-left">
+        <span style="opacity:0.5">SINGULARITY.SYS</span><br>
+        MASS: ∞ M☉
+    </div>
+    <div class="corner-info bottom-right">
+        <span id="particle-count">0</span> PARTICLES<br>
+        <span style="opacity:0.5">EVENT HORIZON ACTIVE</span>
+    </div>
+
+    <!-- Social Icons Sidebar -->
+    <div class="social-sidebar" id="social-sidebar">
+        <div class="social-icon" data-icon="about" data-url="about.html">
+            <img src="YE.svg" alt="YE" style="width: 100%; height: 100%; filter: invert(1); object-fit: contain;">
+            <span class="icon-label">About</span>
+        </div>
+        <div class="social-icon" data-icon="linkedin" data-url="https://linkedin.com">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+            <span class="icon-label">LinkedIn</span>
+        </div>
+        <div class="social-icon" data-icon="github" data-url="https://github.com">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+            </svg>
+            <span class="icon-label">GitHub</span>
+        </div>
+        <div class="social-icon" data-icon="mail" data-url="mailto:hello@yemsr.com">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+            </svg>
+            <span class="icon-label">Contact</span>
+        </div>
+    </div>
+
+    <!-- Reset Button -->
+    <div class="reset-btn" id="reset-btn" title="Reset icons">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path
+                d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" />
+        </svg>
+    </div>
+
+    <!-- Overlay Text -->
+    <div id="overlay">
+        <div class="hero-text">
+            <div class="label" style="letter-spacing: 0.6em; text-transform: uppercase;">Computer Engineering Student
+            </div>
+            <div class="title" style="letter-spacing: 0.2em; margin: 10px 0;">YİĞİT EMİR</div>
+            <div class="sub" style="font-weight: 300;">Yazılım, Teknoloji ve Gelecek ∙ <span
+                    id="current-year-roman"></span></div>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Set dynamic roman numeral year
+        (function setRomanYear() {
+            const year = new Date().getFullYear();
+            const romanNumerals = [
+                { val: 1000, sym: 'M' }, { val: 900, sym: 'CM' },
+                { val: 500, sym: 'D' }, { val: 400, sym: 'CD' },
+                { val: 100, sym: 'C' }, { val: 90, sym: 'XC' },
+                { val: 50, sym: 'L' }, { val: 40, sym: 'XL' },
+                { val: 10, sym: 'X' }, { val: 9, sym: 'IX' },
+                { val: 5, sym: 'V' }, { val: 4, sym: 'IV' },
+                { val: 1, sym: 'I' }
+            ];
+            let roman = '';
+            let tempYear = year;
+            for (let i = 0; i < romanNumerals.length; i++) {
+                while (tempYear >= romanNumerals[i].val) {
+                    roman += romanNumerals[i].sym;
+                    tempYear -= romanNumerals[i].val;
+                }
+            }
+            const el = document.getElementById('current-year-roman');
+            if (el) el.textContent = roman;
+        })();
+
+        // ─── CONFIGURATION ────────────────────────────────────────
+        const CONFIG = {
+            ACCRETION_PARTICLES: 80000,
+            STAR_PARTICLES: 4000,
+            JET_PARTICLES: 6000,
+            DEBRIS_PARTICLES: 3000,
+            CAMERA_DISTANCE: 6.5,
+            LERP_FACTOR: 0.035,
+            ROTATION_SPEED: 0.00015,
+            DISK_INNER_RADIUS: 1.2,
+            DISK_OUTER_RADIUS: 4.5,
+            EVENT_HORIZON_RADIUS: 0.85,
+        };
+
+        // ─── GLOBALS ──────────────────────────────────────────────
+        let scene, camera, renderer;
+        let accretionDisk, starField, jetParticles, debrisParticles;
+        let eventHorizon, glowSphere, outerGlow;
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        let clock, frameCount = 0, lastFpsTime = 0;
+
+        // ─── INIT ─────────────────────────────────────────────────
+        function init() {
+            clock = new THREE.Clock();
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = new THREE.FogExp2(0x000000, 0.06);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2.5, CONFIG.CAMERA_DISTANCE);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: false,
+                powerPreference: 'high-performance'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            document.body.appendChild(renderer.domElement);
+
+            createEventHorizon();
+            createAccretionDisk();
+            createStarField();
+            createRelativisticJets();
+            createDebrisField();
+            createGravitationalRings();
+
+            // Events
+            document.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('resize', onResize, false);
+
+            // Hide loader
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 2000);
+
+            // Update particle count
+            const total = CONFIG.ACCRETION_PARTICLES + CONFIG.STAR_PARTICLES + CONFIG.JET_PARTICLES + CONFIG.DEBRIS_PARTICLES;
+            document.getElementById('particle-count').textContent = total.toLocaleString();
+
+            animate();
+        }
+
+        // ─── EVENT HORIZON ────────────────────────────────────────
+        function createEventHorizon() {
+            // Core black sphere
+            const geo = new THREE.SphereGeometry(CONFIG.EVENT_HORIZON_RADIUS, 64, 64);
+            const mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            eventHorizon = new THREE.Mesh(geo, mat);
+            scene.add(eventHorizon);
+
+            // Inner glow ring (Photon Sphere)
+            const glowGeo = new THREE.SphereGeometry(CONFIG.EVENT_HORIZON_RADIUS + 0.08, 64, 64);
+            const glowMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    viewVector: { value: new THREE.Vector3() }
+                },
+                vertexShader: `
+                    uniform vec3 viewVector;
+                    varying float vIntensity;
+                    void main() {
+                        vec3 vNormal = normalize(normalMatrix * normal);
+                        vec3 vNormel = normalize(normalMatrix * viewVector);
+                        vIntensity = pow(1.0 - abs(dot(vNormal, vNormel)), 3.0);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    varying float vIntensity;
+                    void main() {
+                        float flicker = 0.85 + 0.15 * sin(uTime * 2.0);
+                        float intensity = vIntensity * flicker;
+                        gl_FragColor = vec4(intensity, intensity, intensity, intensity * 0.8);
+                    }
+                `,
+                side: THREE.FrontSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false
+            });
+            glowSphere = new THREE.Mesh(glowGeo, glowMat);
+            scene.add(glowSphere);
+
+            // Outer atmospheric glow
+            const outerGlowGeo = new THREE.SphereGeometry(CONFIG.EVENT_HORIZON_RADIUS + 0.35, 64, 64);
+            const outerGlowMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    viewVector: { value: new THREE.Vector3() }
+                },
+                vertexShader: `
+                    uniform vec3 viewVector;
+                    varying float vIntensity;
+                    void main() {
+                        vec3 vNormal = normalize(normalMatrix * normal);
+                        vec3 vNormel = normalize(normalMatrix * viewVector);
+                        vIntensity = pow(1.0 - abs(dot(vNormal, vNormel)), 5.0);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float uTime;
+                    varying float vIntensity;
+                    void main() {
+                        float pulse = 0.9 + 0.1 * sin(uTime * 1.5 + 1.57);
+                        float i = vIntensity * pulse * 0.4;
+                        gl_FragColor = vec4(i, i, i * 1.1, i);
+                    }
+                `,
+                side: THREE.FrontSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false
+            });
+            outerGlow = new THREE.Mesh(outerGlowGeo, outerGlowMat);
+            scene.add(outerGlow);
+        }
+
+        // ─── ACCRETION DISK ───────────────────────────────────────
+        function createAccretionDisk() {
+            const count = CONFIG.ACCRETION_PARTICLES;
+            const positions = new Float32Array(count * 3);
+            const velocities = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+            const opacities = new Float32Array(count);
+            const orbitData = new Float32Array(count * 3); // angle, radius, height
+
+            for (let i = 0; i < count; i++) {
+                const radius = CONFIG.DISK_INNER_RADIUS + Math.pow(Math.random(), 1.5) * (CONFIG.DISK_OUTER_RADIUS - CONFIG.DISK_INNER_RADIUS);
+                const angle = Math.random() * Math.PI * 2;
+                const height = (Math.random() - 0.5) * 0.15 * (1 - (radius - CONFIG.DISK_INNER_RADIUS) / (CONFIG.DISK_OUTER_RADIUS - CONFIG.DISK_INNER_RADIUS));
+
+                // Add turbulence closer to center
+                const turbulence = 0.1 / (radius * 0.5);
+                const hOffset = height + (Math.random() - 0.5) * turbulence;
+
+                positions[i * 3] = Math.cos(angle) * radius;
+                positions[i * 3 + 1] = hOffset;
+                positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+                orbitData[i * 3] = angle;
+                orbitData[i * 3 + 1] = radius;
+                orbitData[i * 3 + 2] = hOffset;
+
+                // Brightness based on radius (brighter near center)
+                const brightness = Math.max(0.2, 1.0 - (radius - CONFIG.DISK_INNER_RADIUS) / (CONFIG.DISK_OUTER_RADIUS - CONFIG.DISK_INNER_RADIUS));
+                sizes[i] = (0.15 + Math.random() * 0.6) * brightness;
+                opacities[i] = brightness * (0.4 + Math.random() * 0.6);
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('aOpacity', new THREE.BufferAttribute(opacities, 1));
+            geometry.userData = { orbitData };
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                },
+                vertexShader: `
+                    attribute float aSize;
+                    attribute float aOpacity;
+                    varying float vOpacity;
+                    uniform float uTime;
+                    uniform float uPixelRatio;
+
+                    void main() {
+                        vOpacity = aOpacity;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = aSize * uPixelRatio * (60.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying float vOpacity;
+                    uniform float uTime;
+
+                    void main() {
+                        float d = length(gl_PointCoord - vec2(0.5));
+                        if (d > 0.35) discard;
+
+                        float alpha = smoothstep(0.35, 0.05, d) * vOpacity;
+                        float flicker = 0.92 + 0.08 * sin(uTime * 3.0 + gl_PointCoord.x * 10.0);
+                        float c = alpha * flicker;
+                        gl_FragColor = vec4(c, c, c * 0.95, alpha);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false,
+            });
+
+            accretionDisk = new THREE.Points(geometry, material);
+            scene.add(accretionDisk);
+        }
+
+        // ─── STAR FIELD ───────────────────────────────────────────
+        function createStarField() {
+            const count = CONFIG.STAR_PARTICLES;
+            const positions = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+            const twinklePhase = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                const r = 30 + Math.random() * 70;
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                sizes[i] = 0.15 + Math.random() * 0.5;
+                twinklePhase[i] = Math.random() * Math.PI * 2;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('aTwinkle', new THREE.BufferAttribute(twinklePhase, 1));
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                },
+                vertexShader: `
+                    attribute float aSize;
+                    attribute float aTwinkle;
+                    varying float vTwinkle;
+                    uniform float uTime;
+                    uniform float uPixelRatio;
+
+                    void main() {
+                        vTwinkle = aTwinkle;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        float twinkle = 0.5 + 0.5 * sin(uTime * 0.8 + aTwinkle);
+                        gl_PointSize = aSize * twinkle * uPixelRatio * (50.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying float vTwinkle;
+                    uniform float uTime;
+
+                    void main() {
+                        float d = length(gl_PointCoord - vec2(0.5));
+                        if (d > 0.3) discard;
+                        float alpha = smoothstep(0.3, 0.0, d);
+                        float brightness = 0.6 + 0.4 * sin(uTime * 0.5 + vTwinkle);
+                        float c = alpha * brightness * 0.6;
+                        gl_FragColor = vec4(c, c, c, alpha * 0.5);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false,
+            });
+
+            starField = new THREE.Points(geometry, material);
+            scene.add(starField);
+        }
+
+        // ─── RELATIVISTIC JETS ────────────────────────────────────
+        function createRelativisticJets() {
+            const count = CONFIG.JET_PARTICLES;
+            const positions = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+            const speeds = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                const side = i < count / 2 ? 1 : -1;
+                const dist = Math.pow(Math.random(), 2) * 8;
+                const spread = 0.15 * dist * 0.1;
+
+                positions[i * 3] = (Math.random() - 0.5) * spread;
+                positions[i * 3 + 1] = side * dist;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * spread;
+
+                sizes[i] = 0.15 + Math.random() * 0.4;
+                speeds[i] = 0.3 + Math.random() * 0.7;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+            geometry.setAttribute('aSpeed', new THREE.BufferAttribute(speeds, 1));
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                },
+                vertexShader: `
+                    attribute float aSize;
+                    attribute float aSpeed;
+                    varying float vAlpha;
+                    uniform float uTime;
+                    uniform float uPixelRatio;
+
+                    void main() {
+                        float distFromCenter = abs(position.y);
+                        vAlpha = max(0.0, 1.0 - distFromCenter / 8.0) * 0.3;
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = aSize * uPixelRatio * (40.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying float vAlpha;
+
+                    void main() {
+                        float d = length(gl_PointCoord - vec2(0.5));
+                        if (d > 0.3) discard;
+                        float alpha = smoothstep(0.3, 0.02, d) * vAlpha;
+                        gl_FragColor = vec4(alpha, alpha, alpha, alpha);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false,
+            });
+
+            jetParticles = new THREE.Points(geometry, material);
+            scene.add(jetParticles);
+        }
+
+        // ─── DEBRIS FIELD ─────────────────────────────────────────
+        function createDebrisField() {
+            const count = CONFIG.DEBRIS_PARTICLES;
+            const positions = new Float32Array(count * 3);
+            const sizes = new Float32Array(count);
+
+            for (let i = 0; i < count; i++) {
+                const radius = CONFIG.DISK_OUTER_RADIUS + Math.random() * 6;
+                const angle = Math.random() * Math.PI * 2;
+                const height = (Math.random() - 0.5) * 2;
+
+                positions[i * 3] = Math.cos(angle) * radius;
+                positions[i * 3 + 1] = height;
+                positions[i * 3 + 2] = Math.sin(angle) * radius;
+
+                sizes[i] = 0.1 + Math.random() * 0.35;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uTime: { value: 0 },
+                    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+                },
+                vertexShader: `
+                    attribute float aSize;
+                    uniform float uPixelRatio;
+                    varying float vDist;
+
+                    void main() {
+                        vDist = length(position.xz);
+                        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                        gl_PointSize = aSize * uPixelRatio * (30.0 / -mvPosition.z);
+                        gl_Position = projectionMatrix * mvPosition;
+                    }
+                `,
+                fragmentShader: `
+                    varying float vDist;
+
+                    void main() {
+                        float d = length(gl_PointCoord - vec2(0.5));
+                        if (d > 0.3) discard;
+                        float alpha = smoothstep(0.3, 0.02, d) * max(0.0, 1.0 - vDist / 12.0) * 0.2;
+                        gl_FragColor = vec4(alpha, alpha, alpha, alpha);
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false,
+            });
+
+            debrisParticles = new THREE.Points(geometry, material);
+            scene.add(debrisParticles);
+        }
+
+        // ─── GRAVITATIONAL RINGS ──────────────────────────────────
+        function createGravitationalRings() {
+            for (let r = 0; r < 3; r++) {
+                const radius = CONFIG.EVENT_HORIZON_RADIUS + 0.5 + r * 0.6;
+                const ringGeo = new THREE.RingGeometry(radius, radius + 0.005, 128);
+                const ringMat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.04 - r * 0.01,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                scene.add(ring);
+            }
+        }
+
+        // ─── ANIMATE ──────────────────────────────────────────────
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsed = clock.getElapsedTime();
+            const delta = clock.getDelta();
+
+            // FPS counter
+            frameCount++;
+            if (elapsed - lastFpsTime >= 0.5) {
+                const fps = Math.round(frameCount / (elapsed - lastFpsTime));
+                document.getElementById('fps-counter').textContent = fps + ' FPS';
+                frameCount = 0;
+                lastFpsTime = elapsed;
+            }
+
+            // Smooth mouse tracking
+            targetX += (mouseX - targetX) * CONFIG.LERP_FACTOR;
+            targetY += (mouseY - targetY) * CONFIG.LERP_FACTOR;
+
+            // Camera orbit
+            const camTheta = targetX * Math.PI * 0.3;
+            const camPhi = 0.4 + targetY * 0.3;
+            camera.position.x = CONFIG.CAMERA_DISTANCE * Math.sin(camTheta) * Math.cos(camPhi);
+            camera.position.y = CONFIG.CAMERA_DISTANCE * Math.sin(camPhi) + 1.5;
+            camera.position.z = CONFIG.CAMERA_DISTANCE * Math.cos(camTheta) * Math.cos(camPhi);
+            camera.lookAt(0, 0, 0);
+
+            // Update coordinate display
+            const lat = (targetY * 90).toFixed(4);
+            const lon = (targetX * 180).toFixed(4);
+            document.getElementById('coordinates').textContent =
+                `${Math.abs(lat)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lon)}°${lon >= 0 ? 'E' : 'W'}`;
+
+            // Rotate accretion disk particles (Keplerian: inner orbits faster)
+            if (accretionDisk) {
+                const posAttr = accretionDisk.geometry.getAttribute('position');
+                const orbitData = accretionDisk.geometry.userData.orbitData;
+                const arr = posAttr.array;
+
+                for (let i = 0; i < CONFIG.ACCRETION_PARTICLES; i++) {
+                    const radius = orbitData[i * 3 + 1];
+                    const baseHeight = orbitData[i * 3 + 2];
+
+                    // Keplerian velocity: faster = closer
+                    const speed = CONFIG.ROTATION_SPEED * (5.0 / Math.pow(radius, 1.5));
+                    orbitData[i * 3] += speed;
+
+                    const angle = orbitData[i * 3];
+
+                    arr[i * 3] = Math.cos(angle) * radius;
+                    arr[i * 3 + 1] = baseHeight + Math.sin(elapsed * 0.5 + i) * 0.005;
+                    arr[i * 3 + 2] = Math.sin(angle) * radius;
+                }
+                posAttr.needsUpdate = true;
+
+                accretionDisk.material.uniforms.uTime.value = elapsed;
+            }
+
+            // Animate jet particles
+            if (jetParticles) {
+                const posAttr = jetParticles.geometry.getAttribute('position');
+                const speedAttr = jetParticles.geometry.getAttribute('aSpeed');
+                const arr = posAttr.array;
+
+                for (let i = 0; i < CONFIG.JET_PARTICLES; i++) {
+                    const side = i < CONFIG.JET_PARTICLES / 2 ? 1 : -1;
+                    arr[i * 3 + 1] += side * speedAttr.array[i] * 0.02;
+
+                    if (Math.abs(arr[i * 3 + 1]) > 8) {
+                        const spread = 0.05;
+                        arr[i * 3] = (Math.random() - 0.5) * spread;
+                        arr[i * 3 + 1] = side * 0.3;
+                        arr[i * 3 + 2] = (Math.random() - 0.5) * spread;
+                    }
+                }
+                posAttr.needsUpdate = true;
+                jetParticles.material.uniforms.uTime.value = elapsed;
+            }
+
+            // Slowly rotate debris
+            if (debrisParticles) {
+                debrisParticles.rotation.y += 0.00005;
+                debrisParticles.material.uniforms.uTime.value = elapsed;
+            }
+
+            // Rotate star field very slowly
+            if (starField) {
+                starField.rotation.y += 0.00002;
+                starField.material.uniforms.uTime.value = elapsed;
+            }
+
+            // Update glow uniforms
+            if (glowSphere) {
+                glowSphere.material.uniforms.uTime.value = elapsed;
+                glowSphere.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(
+                    camera.position, glowSphere.position
+                );
+            }
+
+            if (outerGlow) {
+                outerGlow.material.uniforms.uTime.value = elapsed;
+                outerGlow.material.uniforms.viewVector.value = new THREE.Vector3().subVectors(
+                    camera.position, outerGlow.position
+                );
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ─── EVENT HANDLERS ───────────────────────────────────────
+        function onMouseMove(e) {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = (e.clientY / window.innerHeight) * 2 - 1;
+
+            // Custom cursor
+            const cursor = document.getElementById('cursor');
+            const dot = document.getElementById('cursor-dot');
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            dot.style.left = e.clientX + 'px';
+            dot.style.top = e.clientY + 'px';
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Update pixel ratio uniforms
+            const pr = Math.min(window.devicePixelRatio, 2);
+            if (accretionDisk) accretionDisk.material.uniforms.uPixelRatio.value = pr;
+            if (starField) starField.material.uniforms.uPixelRatio.value = pr;
+            if (jetParticles) jetParticles.material.uniforms.uPixelRatio.value = pr;
+            if (debrisParticles) debrisParticles.material.uniforms.uPixelRatio.value = pr;
+        }
+
+        // ─── START ────────────────────────────────────────────────
+        init();
+
+        // ─── DRAGGABLE SOCIAL ICONS WITH BLACK HOLE ABSORPTION ───
+        (function () {
+            const sidebar = document.getElementById('social-sidebar');
+            const icons = document.querySelectorAll('.social-icon');
+            const resetBtn = document.getElementById('reset-btn');
+            const centerX = () => window.innerWidth / 2;
+            const centerY = () => window.innerHeight / 2;
+            const EVENT_HORIZON_PX = 50;
+            const DRAG_THRESHOLD = 5;
+            const ICON_HALF = 18;
+
+            const GRAVITY_STRENGTH = 800;
+            const FRICTION = 0.97;
+
+            let absorbedCount = 0;
+
+            let dragState = {
+                active: false,
+                isDragging: false,
+                el: null,
+                placeholder: null,
+                mouseDownX: 0, mouseDownY: 0,
+                totalMoved: 0,
+                absorbed: false,
+                posX: 0, posY: 0,
+                velX: 0, velY: 0,
+                mouseHeld: false,
+                mouseX: 0, mouseY: 0,
+                gravityAnimId: null
+            };
+
+            icons.forEach(icon => {
+                icon.addEventListener('mousedown', startDrag);
+                icon.addEventListener('touchstart', startDrag, { passive: false });
+            });
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+            resetBtn.addEventListener('click', resetAllIcons);
+
+            function updateResetBtn() {
+                if (absorbedCount > 0) {
+                    resetBtn.classList.add('visible');
+                } else {
+                    resetBtn.classList.remove('visible');
+                }
+            }
+
+            function resetAllIcons() {
+                if (dragState.gravityAnimId) {
+                    cancelAnimationFrame(dragState.gravityAnimId);
+                    dragState.gravityAnimId = null;
+                }
+                dragState.active = false;
+                dragState.mouseHeld = false;
+                dragState.absorbed = false;
+
+                // Clean up placeholders
+                document.querySelectorAll('.social-sidebar-placeholder').forEach(p => p.remove());
+                if (dragState.placeholder && dragState.placeholder.parentNode) {
+                    dragState.placeholder.remove();
+                }
+                dragState.placeholder = null;
+
+                icons.forEach((icon, i) => {
+                    if (icon.parentNode !== sidebar) {
+                        sidebar.appendChild(icon);
+                    }
+                    icon.style.transition = 'none';
+                    icon.style.position = '';
+                    icon.style.left = '';
+                    icon.style.top = '';
+                    icon.style.margin = '';
+                    icon.style.zIndex = '';
+                    icon.style.filter = '';
+                    icon.style.transform = 'scale(0)';
+                    icon.style.opacity = '0';
+                    icon.classList.remove('dragging');
+
+                    setTimeout(() => {
+                        icon.style.transition = 'opacity 0.6s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+                        icon.style.transform = 'scale(1)';
+                        icon.style.opacity = '0.2';
+                        setTimeout(() => { icon.style.transition = ''; }, 700);
+                    }, i * 80);
+                });
+
+                absorbedCount = 0;
+                updateResetBtn();
+                restoreCursor();
+            }
+
+            function startDrag(e) {
+                e.preventDefault();
+                if (dragState.gravityAnimId) {
+                    cancelAnimationFrame(dragState.gravityAnimId);
+                    dragState.gravityAnimId = null;
+                }
+                const el = e.currentTarget;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                dragState.active = true;
+                dragState.isDragging = false;
+                dragState.el = el;
+                dragState.absorbed = false;
+                dragState.mouseDownX = clientX;
+                dragState.mouseDownY = clientY;
+                dragState.totalMoved = 0;
+                dragState.mouseHeld = true;
+                dragState.mouseX = clientX;
+                dragState.mouseY = clientY;
+                dragState.velX = 0;
+                dragState.velY = 0;
+            }
+
+            function promoteToDrag(el, clientX, clientY) {
+                dragState.isDragging = true;
+
+                const placeholder = document.createElement('div');
+                placeholder.className = 'social-sidebar-placeholder';
+                placeholder.style.width = '36px';
+                placeholder.style.height = '36px';
+                placeholder.style.opacity = '0';
+                dragState.placeholder = placeholder;
+                el.parentNode.insertBefore(placeholder, el);
+
+                document.body.appendChild(el);
+                el.classList.add('dragging');
+                el.style.position = 'fixed';
+                el.style.margin = '0';
+                el.style.left = (clientX - ICON_HALF) + 'px';
+                el.style.top = (clientY - ICON_HALF) + 'px';
+                el.style.opacity = '0.6';
+                el.style.zIndex = '9998';
+
+                dragState.posX = clientX - ICON_HALF;
+                dragState.posY = clientY - ICON_HALF;
+
+                document.getElementById('cursor').style.display = 'none';
+                document.getElementById('cursor-dot').style.display = 'none';
+                document.body.style.cursor = 'grabbing';
+
+                startGravityLoop();
+            }
+
+            function startGravityLoop() {
+                let lastTime = performance.now();
+                function tick(now) {
+                    if (dragState.absorbed) return;
+                    const dt = Math.min((now - lastTime) / 1000, 0.05);
+                    lastTime = now;
+                    const el = dragState.el;
+                    if (!el) return;
+
+                    let cx = dragState.posX + ICON_HALF;
+                    let cy = dragState.posY + ICON_HALF;
+                    const dx = centerX() - cx;
+                    const dy = centerY() - cy;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dragState.mouseHeld) {
+                        let targetX = dragState.mouseX - ICON_HALF;
+                        let targetY = dragState.mouseY - ICON_HALF;
+                        if (dist > 0) {
+                            const pullForce = GRAVITY_STRENGTH / (dist * dist + 2000) * 30;
+                            targetX += (dx / dist) * pullForce;
+                            targetY += (dy / dist) * pullForce;
+                        }
+                        dragState.posX += (targetX - dragState.posX) * 0.3;
+                        dragState.posY += (targetY - dragState.posY) * 0.3;
+                        dragState.velX = (targetX - dragState.posX) * 5;
+                        dragState.velY = (targetY - dragState.posY) * 5;
+                    } else {
+                        if (dist > 0) {
+                            const force = GRAVITY_STRENGTH / (dist * dist + 500);
+                            dragState.velX += (dx / dist) * force;
+                            dragState.velY += (dy / dist) * force;
+                        }
+                        dragState.velX *= FRICTION;
+                        dragState.velY *= FRICTION;
+                        dragState.posX += dragState.velX * dt * 60;
+                        dragState.posY += dragState.velY * dt * 60;
+                    }
+
+                    el.style.left = dragState.posX + 'px';
+                    el.style.top = dragState.posY + 'px';
+
+                    const fcx = dragState.posX + ICON_HALF;
+                    const fcy = dragState.posY + ICON_HALF;
+                    const fdx = centerX() - fcx;
+                    const fdy = centerY() - fcy;
+                    const finalDist = Math.sqrt(fdx * fdx + fdy * fdy);
+
+                    applyDistortion(el, finalDist, fdx, fdy);
+
+                    if (finalDist < EVENT_HORIZON_PX) {
+                        absorbIcon(el, fcx, fcy);
+                        return;
+                    }
+                    dragState.gravityAnimId = requestAnimationFrame(tick);
+                }
+                dragState.gravityAnimId = requestAnimationFrame(tick);
+            }
+
+            function onDrag(e) {
+                if (!dragState.active || dragState.absorbed) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                dragState.mouseX = clientX;
+                dragState.mouseY = clientY;
+
+                const moveDx = clientX - dragState.mouseDownX;
+                const moveDy = clientY - dragState.mouseDownY;
+                dragState.totalMoved = Math.sqrt(moveDx * moveDx + moveDy * moveDy);
+
+                if (!dragState.isDragging) {
+                    if (dragState.totalMoved >= DRAG_THRESHOLD) {
+                        promoteToDrag(dragState.el, clientX, clientY);
+                    }
+                    return;
+                }
+                e.preventDefault();
+            }
+
+            function applyDistortion(el, dist, dx, dy) {
+                const maxRange = Math.max(centerX(), centerY());
+                if (dist > maxRange) {
+                    el.style.transform = 'none';
+                    el.style.filter = 'none';
+                    el.style.opacity = '0.6';
+                    return;
+                }
+                const t = Math.max(0, 1 - dist / 350);
+                const tSq = t * t;
+                const tCube = t * t * t;
+                const angle = Math.atan2(dy, dx);
+                const angleDeg = angle * (180 / Math.PI);
+                const stretchX = 1 + tSq * 2.5;
+                const stretchY = 1 - tSq * 0.6;
+                const scaleDown = 1 - tCube * 0.7;
+                const rotation = angleDeg - 90;
+                const spiralAngle = tSq * 180;
+
+                el.style.transform = `rotate(${rotation + spiralAngle}deg) scaleX(${stretchX * scaleDown}) scaleY(${stretchY * scaleDown})`;
+
+                const blurAmount = tCube * 4;
+                el.style.filter = `blur(${blurAmount}px) brightness(${1 + tSq * 3}) contrast(${1 + tSq * 1.5})`;
+
+                el.style.opacity = dist < 100
+                    ? Math.max(0.05, 0.8 - tCube * 0.75)
+                    : 0.3 + tSq * 0.5;
+            }
+
+            function absorbIcon(el, x, y) {
+                dragState.absorbed = true;
+                dragState.active = false;
+                dragState.mouseHeld = false;
+                if (dragState.gravityAnimId) {
+                    cancelAnimationFrame(dragState.gravityAnimId);
+                    dragState.gravityAnimId = null;
+                }
+
+                el.style.transition = 'all 0.4s cubic-bezier(0.55, 0.06, 0.68, 0.19)';
+                el.style.left = (centerX() - ICON_HALF) + 'px';
+                el.style.top = (centerY() - ICON_HALF) + 'px';
+                el.style.transform = 'scale(0) rotate(720deg)';
+                el.style.opacity = '0';
+                el.style.filter = 'blur(8px) brightness(5)';
+
+                spawnAbsorptionBurst(x, y);
+                restoreCursor();
+
+                if (dragState.placeholder && dragState.placeholder.parentNode) {
+                    dragState.placeholder.remove();
+                }
+                dragState.placeholder = null;
+
+                absorbedCount++;
+                updateResetBtn();
+            }
+
+            function spawnAbsorptionBurst(x, y) {
+                for (let i = 0; i < 16; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'absorption-particle';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    const a = (i / 16) * Math.PI * 2 + Math.random() * 0.5;
+                    const speed = 30 + Math.random() * 60;
+                    const tX = x + Math.cos(a) * speed;
+                    const tY = y + Math.sin(a) * speed;
+                    const dur = 400 + Math.random() * 400;
+                    document.body.appendChild(particle);
+                    particle.animate([
+                        { left: x + 'px', top: y + 'px', opacity: 1, width: '3px', height: '3px' },
+                        { left: tX + 'px', top: tY + 'px', opacity: 0.8, width: '2px', height: '2px', offset: 0.4 },
+                        { left: centerX() + 'px', top: centerY() + 'px', opacity: 0, width: '1px', height: '1px' }
+                    ], { duration: dur, easing: 'cubic-bezier(0.55, 0.06, 0.68, 0.19)', fill: 'forwards' });
+                    setTimeout(() => particle.remove(), dur + 50);
+                }
+            }
+
+            function restoreCursor() {
+                document.getElementById('cursor').style.display = '';
+                document.getElementById('cursor-dot').style.display = '';
+                document.body.style.cursor = 'none';
+            }
+
+            function endDrag(e) {
+                if (!dragState.active || dragState.absorbed) return;
+                const el = dragState.el;
+
+                if (!dragState.isDragging || dragState.totalMoved < DRAG_THRESHOLD) {
+                    dragState.active = false;
+                    el.classList.remove('dragging');
+                    const url = el.getAttribute('data-url');
+                    if (url) {
+                        if (url.startsWith('mailto:') || url.startsWith('#')) {
+                            window.location.href = url;
+                        } else {
+                            window.open(url, '_blank', 'noopener');
+                        }
+                    }
+                    restoreCursor();
+                    return;
+                }
+
+                dragState.active = false;
+                dragState.mouseHeld = false;
+                restoreCursor();
+            }
+        })();
+    </script>
+</body>
+
+</html>
