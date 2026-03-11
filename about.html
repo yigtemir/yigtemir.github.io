@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yiğit Emir — About</title>
     <meta name="description" content="Yiğit Emir — Computer Engineering Student. Hakkında / Datacard.">
+    <!-- Security Headers (NOTE: frame-ancestors and HSTS require server-side HTTP headers) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
@@ -23,6 +28,7 @@
         body {
             width: 100%;
             height: 100%;
+            height: 100dvh;
             overflow: hidden;
             background: #000;
             font-family: 'Space Grotesk', sans-serif;
@@ -640,6 +646,43 @@
 
             .dc-info-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .back-btn {
+                top: 20px;
+                left: 20px;
+                font-size: 12px;
+                gap: 8px;
+                padding: 8px 12px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 4px;
+                color: rgba(255, 255, 255, 0.5);
+            }
+
+            .back-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .dc-cv-btn {
+                bottom: 20px;
+                right: 20px;
+                padding: 10px 18px;
+                font-size: 9px;
+            }
+        }
+
+        /* ─── MOBILE: HIDE CUSTOM CURSOR ───────────────────── */
+        @media (hover: none) and (pointer: coarse) {
+            html, body {
+                cursor: auto;
+            }
+            .cursor, .cursor-dot {
+                display: none !important;
+            }
+            .back-btn, .dc-cv-btn {
+                cursor: pointer;
             }
         }
     </style>

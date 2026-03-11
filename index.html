@@ -7,6 +7,12 @@
     <title>Yiğit Emir</title>
     <link rel="icon" type="image/x-icon" href="YE.ico">
     <meta name="description" content="An monochromatic website by Yemsr. Built with Three.js and WebGL.">
+    <!-- Security Headers (NOTE: frame-ancestors and HSTS require server-side HTTP headers) -->
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
@@ -24,6 +30,7 @@
         body {
             width: 100%;
             height: 100%;
+            height: 100dvh;
             overflow: hidden;
             background: #000000;
             font-family: 'Space Grotesk', sans-serif;
@@ -379,6 +386,116 @@
             height: 100%;
             fill: #ffffff;
         }
+
+        /* ─── MOBILE: HIDE CUSTOM CURSOR ───────────────────── */
+        @media (hover: none) and (pointer: coarse) {
+
+            html,
+            body {
+                cursor: auto;
+            }
+
+            #cursor,
+            #cursor-dot {
+                display: none !important;
+            }
+
+            .social-icon {
+                cursor: pointer;
+            }
+
+            .reset-btn {
+                cursor: pointer;
+            }
+        }
+
+        /* ─── MOBILE: RESPONSIVE LAYOUT ────────────────────── */
+        @media (max-width: 600px) {
+            .corner-info {
+                font-size: 8px;
+                letter-spacing: 0.2em;
+            }
+
+            .corner-info.top-left,
+            .corner-info.bottom-left {
+                left: 16px;
+            }
+
+            .corner-info.top-right,
+            .corner-info.bottom-right {
+                right: 16px;
+            }
+
+            .corner-info.top-left,
+            .corner-info.top-right {
+                top: 16px;
+            }
+
+            .corner-info.bottom-left,
+            .corner-info.bottom-right {
+                bottom: 16px;
+            }
+
+            .h-line {
+                left: 16px;
+                right: 16px;
+            }
+
+            .h-line.top {
+                top: 40px;
+            }
+
+            .h-line.bottom {
+                bottom: 40px;
+            }
+
+            /* Social sidebar: horizontal at top */
+            .social-sidebar {
+                left: 50%;
+                top: 20px;
+                bottom: auto;
+                transform: translateX(-50%);
+                flex-direction: row;
+                gap: 24px;
+            }
+
+            .social-icon {
+                width: 28px;
+                height: 28px;
+                opacity: 0.3;
+            }
+
+            .social-icon .icon-label {
+                display: none;
+            }
+
+            .reset-btn {
+                left: auto;
+                right: 16px;
+                top: 24px;
+                bottom: auto;
+            }
+
+            /* Overlay text adjustments */
+            #overlay {
+                padding-bottom: 12vh;
+            }
+
+            .hero-text .label {
+                font-size: clamp(8px, 2.5vw, 11px);
+                letter-spacing: 0.3em;
+            }
+
+            .hero-text .title {
+                font-size: clamp(22px, 7vw, 40px);
+                letter-spacing: 0.1em;
+            }
+
+            .hero-text .sub {
+                font-size: clamp(7px, 2vw, 10px);
+                letter-spacing: 0.4em;
+            }
+        }
     </style>
 </head>
 
@@ -421,28 +538,28 @@
     <div class="social-sidebar" id="social-sidebar">
         <div class="social-icon" data-icon="about" data-url="about.html">
             <img src="YE.svg" alt="YE" style="width: 100%; height: 100%; filter: invert(1); object-fit: contain;">
-            <span class="icon-label">About</span>
+            <span class="icon-label">Hakkımda</span>
         </div>
-        <div class="social-icon" data-icon="linkedin" data-url="https://linkedin.com">
+        <div class="social-icon" data-icon="linkedin" data-url="https://www.linkedin.com/in/yigitemirsaatci/">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
             </svg>
             <span class="icon-label">LinkedIn</span>
         </div>
-        <div class="social-icon" data-icon="github" data-url="https://github.com">
+        <div class="social-icon" data-icon="github" data-url="https://github.com/yigtemir/yigtemir.github.io">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
             </svg>
             <span class="icon-label">GitHub</span>
         </div>
-        <div class="social-icon" data-icon="mail" data-url="mailto:hello@yemsr.com">
+        <div class="social-icon" data-icon="mail" data-url="" id="mail-icon">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
             </svg>
-            <span class="icon-label">Contact</span>
+            <span class="icon-label">İletişim</span>
         </div>
     </div>
 
@@ -466,8 +583,16 @@
     </div>
 
     <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+        integrity="sha384-CI3ELBVUz9XQO+97x6nwMDPosPR5XvsxW2ua7N1Xeygeh1IxtgqtCkGfQY9WWdHu"
+        crossorigin="anonymous"></script>
     <script>
+        // Email obfuscation for scrape bots
+        (function () {
+            var u = 'emir2002yiit'; var d = 'gmail.com';
+            var el = document.getElementById('mail-icon');
+            if (el) el.setAttribute('data-url', 'mai' + 'lto:' + u + '@' + d);
+        })();
         // Set dynamic roman numeral year
         (function setRomanYear() {
             const year = new Date().getFullYear();
@@ -1052,6 +1177,35 @@
             dot.style.top = e.clientY + 'px';
         }
 
+        // ─── TOUCH HANDLERS (MOBILE) ──────────────────────────────
+        let isTouchDevice = false;
+
+        function onTouchStart(e) {
+            if (!isTouchDevice) {
+                isTouchDevice = true;
+                document.getElementById('cursor').style.display = 'none';
+                document.getElementById('cursor-dot').style.display = 'none';
+                document.body.style.cursor = 'auto';
+            }
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouseY = (touch.clientY / window.innerHeight) * 2 - 1;
+            }
+        }
+
+        function onTouchMove(e) {
+            // Only control the camera if one finger is touching
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouseY = (touch.clientY / window.innerHeight) * 2 - 1;
+            }
+        }
+
+        document.addEventListener('touchstart', onTouchStart, { passive: true });
+        document.addEventListener('touchmove', onTouchMove, { passive: true });
+
         function onResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -1392,7 +1546,7 @@
                         if (url.startsWith('mailto:') || url.startsWith('#')) {
                             window.location.href = url;
                         } else {
-                            window.open(url, '_blank', 'noopener');
+                            window.open(url, '_blank', 'noopener,noreferrer');
                         }
                     }
                     restoreCursor();
